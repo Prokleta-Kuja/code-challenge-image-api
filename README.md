@@ -38,6 +38,10 @@ Command to run local docker instance (requires bridge network named dev):
 
 Login with username `admin` and password `admin`, then create project `image-api`
 
+If solution is not run in VSCode docker container(using .devcontainer) make sure dotnet-sonarscanner tool is installeg globally with:
+
+`dotnet tool install --global dotnet-sonarscanner --version 5.0.4`
+
 ## SQL Server
 
 Command to run local docker instance (requires bridge network named dev):
@@ -53,3 +57,9 @@ Command to run local docker instance (requires bridge network named dev):
 After startup create the bucket with:
 
 `docker run --network dev --rm -it -e AWS_ACCESS_KEY_ID=a -e AWS_SECRET_ACCESS_KEY=b amazon/aws-cli --endpoint-url=http://localstack.dev:4566 s3 mb s3://images`
+
+## ElasticSearch
+
+Command to run local docker instance (requires bridge network named dev):
+
+`docker run -d --network dev --name es -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.10.0`

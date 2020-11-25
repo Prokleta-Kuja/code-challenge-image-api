@@ -8,6 +8,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Net.Http.Headers;
+using ImageApi.Core.Responses;
+using Newtonsoft.Json;
 
 namespace ImageApi.WebApi.Tests.Controllers
 {
@@ -19,6 +21,44 @@ namespace ImageApi.WebApi.Tests.Controllers
         public ImagesControllerTests(ImageApiFactory factory)
         {
             _factory = factory;
+        }
+
+        [Fact]
+        public async Task Get_Returns_200()
+        {
+            _factory.Mediator.Setup(m => m.Send(It.IsAny<SearchImagesRequest>(), default))
+                             .ReturnsAsync(new PagedResults<ImageVM>(
+                                 0,
+                                 20,
+                                 new ImageVM[] { new ImageVM(new Core.Entities.Image(Guid.NewGuid(), "a", "image/png", 5)) }));
+
+            var client = _factory.CreateClient();
+
+            // Act
+            var response = await client.GetAsync($"api/images/");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<PagedResults<ImageVM>>(json);
+
+            Assert.Single(result.Results);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Get_Returns_204()
+        {
+            _factory.Mediator.Setup(m => m.Send(It.IsAny<SearchImagesRequest>(), default))
+                             .ReturnsAsync(new PagedResults<ImageVM>(0, 20, new ImageVM[0]));
+
+            var client = _factory.CreateClient();
+
+            // Act
+            var response = await client.GetAsync($"api/images/");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
         [Fact]

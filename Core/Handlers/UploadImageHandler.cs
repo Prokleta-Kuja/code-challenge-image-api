@@ -13,11 +13,13 @@ namespace ImageApi.Core.Handlers
     {
         private readonly IImageInformationRepository _info;
         private readonly IImageStorageRepository _storage;
+        private readonly IImageSearchRepository _search;
 
-        public UploadImageHandler(IImageInformationRepository info, IImageStorageRepository storage)
+        public UploadImageHandler(IImageInformationRepository info, IImageStorageRepository storage, IImageSearchRepository search)
         {
             _info = info;
             _storage = storage;
+            _search = search;
         }
 
         public async Task<ImageVM> Handle(UploadImageRequest request, CancellationToken cancellationToken)
@@ -33,6 +35,7 @@ namespace ImageApi.Core.Handlers
 
                 var result = new ImageVM(image);
 
+                await _search.AddAsync(result);
                 return result;
             }
             catch (Exception)

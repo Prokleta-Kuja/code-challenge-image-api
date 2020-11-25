@@ -18,6 +18,7 @@ namespace ImageApi.Core.Tests.Handlers
         [Fact]
         public async Task Throws_if_add_to_storage_fails()
         {
+            var search = new Mock<IImageSearchRepository>();
             var info = new Mock<IImageInformationRepository>();
             var storage = new Mock<IImageStorageRepository>();
             storage
@@ -33,7 +34,7 @@ namespace ImageApi.Core.Tests.Handlers
                 Type = VALID_CONTENTTYPE
             };
 
-            var sut = new UploadImageHandler(info.Object, storage.Object);
+            var sut = new UploadImageHandler(info.Object, storage.Object, search.Object);
             var ex = await Record.ExceptionAsync(() => sut.Handle(cmd, default));
 
             storage.Verify(s => s.AddAsync(It.IsAny<Guid>(), It.IsAny<Stream>()), Times.Once);
@@ -44,6 +45,7 @@ namespace ImageApi.Core.Tests.Handlers
         [Fact]
         public async Task Throws_if_add_to_info_fails()
         {
+            var search = new Mock<IImageSearchRepository>();
             var storage = new Mock<IImageStorageRepository>();
             var info = new Mock<IImageInformationRepository>();
             info
@@ -59,7 +61,7 @@ namespace ImageApi.Core.Tests.Handlers
                 Type = VALID_CONTENTTYPE
             };
 
-            var sut = new UploadImageHandler(info.Object, storage.Object);
+            var sut = new UploadImageHandler(info.Object, storage.Object, search.Object);
             var ex = await Record.ExceptionAsync(() => sut.Handle(cmd, default));
 
             storage.Verify(s => s.AddAsync(It.IsAny<Guid>(), It.IsAny<Stream>()), Times.Once);
@@ -70,6 +72,7 @@ namespace ImageApi.Core.Tests.Handlers
         [Fact]
         public async Task Throws_if_info_save_fails()
         {
+            var search = new Mock<IImageSearchRepository>();
             var storage = new Mock<IImageStorageRepository>();
             var info = new Mock<IImageInformationRepository>();
             info
@@ -85,7 +88,7 @@ namespace ImageApi.Core.Tests.Handlers
                 Type = VALID_CONTENTTYPE
             };
 
-            var sut = new UploadImageHandler(info.Object, storage.Object);
+            var sut = new UploadImageHandler(info.Object, storage.Object, search.Object);
             var ex = await Record.ExceptionAsync(() => sut.Handle(cmd, default));
 
             storage.Verify(s => s.AddAsync(It.IsAny<Guid>(), It.IsAny<Stream>()), Times.Once);
@@ -97,6 +100,7 @@ namespace ImageApi.Core.Tests.Handlers
         [Fact]
         public async Task Removes_from_storage_if_add_to_info_fails()
         {
+            var search = new Mock<IImageSearchRepository>();
             var storage = new Mock<IImageStorageRepository>();
             var info = new Mock<IImageInformationRepository>();
             info
@@ -112,7 +116,7 @@ namespace ImageApi.Core.Tests.Handlers
                 Type = VALID_CONTENTTYPE
             };
 
-            var sut = new UploadImageHandler(info.Object, storage.Object);
+            var sut = new UploadImageHandler(info.Object, storage.Object, search.Object);
             var ex = await Record.ExceptionAsync(() => sut.Handle(cmd, default));
 
             storage.Verify(s => s.AddAsync(It.IsAny<Guid>(), It.IsAny<Stream>()), Times.Once);
@@ -124,6 +128,7 @@ namespace ImageApi.Core.Tests.Handlers
         [Fact]
         public async Task Removes_from_storage_if_info_save_fails()
         {
+            var search = new Mock<IImageSearchRepository>();
             var storage = new Mock<IImageStorageRepository>();
             var info = new Mock<IImageInformationRepository>();
             info
@@ -139,7 +144,7 @@ namespace ImageApi.Core.Tests.Handlers
                 Type = VALID_CONTENTTYPE
             };
 
-            var sut = new UploadImageHandler(info.Object, storage.Object);
+            var sut = new UploadImageHandler(info.Object, storage.Object, search.Object);
             var ex = await Record.ExceptionAsync(() => sut.Handle(cmd, default));
 
             storage.Verify(s => s.AddAsync(It.IsAny<Guid>(), It.IsAny<Stream>()), Times.Once);
@@ -152,6 +157,7 @@ namespace ImageApi.Core.Tests.Handlers
         [Fact]
         public async Task Returns_response()
         {
+            var search = new Mock<IImageSearchRepository>();
             var storage = new Mock<IImageStorageRepository>();
             var info = new Mock<IImageInformationRepository>();
 
@@ -164,7 +170,7 @@ namespace ImageApi.Core.Tests.Handlers
                 Type = VALID_CONTENTTYPE
             };
 
-            var sut = new UploadImageHandler(info.Object, storage.Object);
+            var sut = new UploadImageHandler(info.Object, storage.Object, search.Object);
             var image = await sut.Handle(cmd, default);
 
             storage.Verify(s => s.AddAsync(It.IsAny<Guid>(), It.IsAny<Stream>()), Times.Once);
@@ -176,6 +182,28 @@ namespace ImageApi.Core.Tests.Handlers
             Assert.Equal(VALID_DESCRIPTION, image.Description);
             Assert.Equal(VALID_CONTENTTYPE, image.Type);
             Assert.Equal(VALID_SIZE, image.Size);
+        }
+
+        [Fact]
+        public async Task Adds_image_to_search_repo()
+        {
+            var search = new Mock<IImageSearchRepository>();
+            var storage = new Mock<IImageStorageRepository>();
+            var info = new Mock<IImageInformationRepository>();
+
+            using Stream imageStream = new MemoryStream();
+            var cmd = new UploadImageRequest
+            {
+                Image = imageStream,
+                Description = VALID_DESCRIPTION,
+                Size = VALID_SIZE,
+                Type = VALID_CONTENTTYPE
+            };
+
+            var sut = new UploadImageHandler(info.Object, storage.Object, search.Object);
+            var image = await sut.Handle(cmd, default);
+
+            search.Verify(m => m.AddAsync(image), Times.Once);
         }
     }
 }

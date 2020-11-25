@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using ImageApi.Core.Models;
 using ImageApi.Core.Requests;
+using ImageApi.Core.Responses;
 using ImageApi.Core.Validators;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -19,6 +21,19 @@ namespace ImageApi.WebApi.Controllers
             _mediator = mediator;
         }
 
+        [HttpGet()]
+        [ProducesDefaultResponseType(typeof(ProblemDetails))]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<PagedResults<ImageVM>>> Get([FromQuery] SearchImagesRequest request)
+        {
+            var response = await _mediator.Send(request);
+            if (!response.Results.Any())
+                return NoContent();
+
+            return Ok(response);
+        }
         [HttpGet("{id}")]
         [ProducesDefaultResponseType(typeof(ProblemDetails))]
         [ProducesResponseType(StatusCodes.Status200OK)]

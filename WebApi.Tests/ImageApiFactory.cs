@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Nest;
 
 namespace ImageApi.WebApi.Tests
 {
@@ -20,6 +21,10 @@ namespace ImageApi.WebApi.Tests
                 var logger = services.SingleOrDefault(d => d.ServiceType == typeof(ILogger));
                 services.Remove(logger);
 
+                var esClient = services.SingleOrDefault(d => d.ServiceType == typeof(IElasticClient));
+                services.Remove(esClient);
+                services.AddScoped<IElasticClient>(s => new Mock<IElasticClient>().Object);
+
                 var dbCtx = services.SingleOrDefault(d => d.ServiceType == typeof(ImageDbContext));
                 services.Remove(dbCtx);
                 services.AddScoped<ImageDbContext>(s => new Mock<ImageDbContext>().Object);
@@ -31,6 +36,10 @@ namespace ImageApi.WebApi.Tests
                 var storage = services.SingleOrDefault(d => d.ServiceType == typeof(IImageStorageRepository));
                 services.Remove(storage);
                 services.AddScoped<IImageStorageRepository>(s => new Mock<IImageStorageRepository>().Object);
+
+                var search = services.SingleOrDefault(d => d.ServiceType == typeof(IImageSearchRepository));
+                services.Remove(search);
+                services.AddScoped<IImageSearchRepository>(s => new Mock<IImageSearchRepository>().Object);
 
                 var mediator = services.SingleOrDefault(d => d.ServiceType == typeof(IMediator));
                 services.Remove(mediator);
